@@ -1,36 +1,14 @@
+"use client";
+
+import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TrustBadges from "@/components/TrustBadges";
 import Breadcrumb from "@/components/Breadcrumb";
+import SortFilter from "@/components/SortFilter";
 import ProductCard from "@/components/ProductCard";
-import { scrapeCategoryProducts, Product } from "@/lib/scraper";
-
-export const revalidate = 3600;
-
-const categoryNames: Record<string, string> = {
-  audio: "Audio",
-  power: "Power",
-  "smart-office": "Smart & Office",
-  "personal-care": "Personal Care",
-  "home-appliances": "Home Appliances",
-  "wireless-stereo-earbuds": "Wireless Stereo Earbuds",
-  "wireless-neckband-headphones": "Wireless Neckband Headphones",
-  "wireless-over-ear-headphones": "Wireless Over-Ear Headphones",
-  "open-ear-headphones": "Open-Ear Headphones",
-  "wireless-speakers": "Wireless Speakers",
-  "power-banks": "Power Banks",
-  "wall-chargers": "Wall Chargers",
-  "wireless-chargers": "Wireless Chargers",
-  "car-chargers": "Car Chargers",
-  cables: "Cables",
-  "smart-watches": "Smart Watches",
-  "smart-lighting": "Smart Lighting",
-  "mouse-keyboards": "Mouse & Keyboards",
-  "camera-accessories": "Camera Accessories",
-  networking: "Mi-Fi",
-  "grooming-series": "Grooming Series",
-  "oral-care": "Oral Care",
-};
+import CategorySidebar from "@/components/CategorySidebar";
+import { Product } from "@/lib/scraper";
 
 const categorySubcategories: Record<string, { name: string; slug: string }[]> = {
   audio: [
@@ -67,21 +45,43 @@ const categorySubcategories: Record<string, { name: string; slug: string }[]> = 
   ],
 };
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
+const categoryNames: Record<string, string> = {
+  audio: "Audio",
+  power: "Power",
+  "smart-office": "Smart & Office",
+  "personal-care": "Personal Care",
+  "home-appliances": "Home Appliances",
+};
+
+interface CollectionPageClientProps {
+  slug: string;
+  products: Product[];
 }
 
-export default async function CollectionPage({ params }: PageProps) {
-  const { slug } = await params;
+export default function CollectionPageClient({
+  slug,
+  products,
+}: CollectionPageClientProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sortBy, setSortBy] = useState("recommend");
+
   const categoryName = categoryNames[slug] || slug.replace(/-/g, " ");
   const subcategories = categorySubcategories[slug] || [];
 
-  let products: Product[] = [];
-  try {
-    products = await scrapeCategoryProducts(slug);
-  } catch (error) {
-    console.error("Failed to scrape category:", error);
-  }
+  const sortedProducts = [...products].sort((a, b) => {
+    switch (sortBy) {
+      case "price-asc":
+        return a.price - b.price;
+      case "price-desc":
+        return b.price - a.price;
+      case "rating":
+        return b.rating - a.rating;
+      case "best-selling":
+        return b.reviewCount - a.reviewCount;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -99,33 +99,28 @@ export default async function CollectionPage({ params }: PageProps) {
             ]}
           />
 
-          <div className="flex items-center justify-between py-4 border-b">
-            <span className="text-sm text-gray-500">
-              {products.length} products
-            </span>
-          </div>
+          <SortFilter
+            totalProducts={products.length}
+            onSortChange={setSortBy}
+            onFilterToggle={() => setSidebarOpen(true)}
+          />
 
           <div className="flex gap-8 py-6">
             {subcategories.length > 0 && (
-              <aside className="hidden lg:block w-64 flex-shrink-0">
-                <nav className="space-y-1">
-                  {subcategories.map((sub) => (
-                    <a
-                      key={sub.slug}
-                      href={`/collections/${sub.slug}`}
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <span>{sub.name}</span>
-                    </a>
-                  ))}
-                </nav>
-              </aside>
+              <div className="hidden lg:block w-64 flex-shrink-0">
+                <CategorySidebar
+                  subcategories={subcategories}
+                  currentSlug={slug}
+                  isOpen={false}
+                  onClose={() => {}}
+                />
+              </div>
             )}
 
             <div className="flex-1">
-              {products.length > 0 ? (
+              {sortedProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                  {products.map((product) => (
+                  {sortedProducts.map((product) => (
                     <ProductCard key={product.id} {...product} />
                   ))}
                 </div>
@@ -142,12 +137,39 @@ export default async function CollectionPage({ params }: PageProps) {
                   </a>
                 </div>
               )}
+
+              {sortedProducts.length > 0 && (
+                <div className="flex justify-center mt-8 gap-2">
+                  <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
+                    Previous
+                  </button>
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium">
+                    1
+                  </button>
+                  <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
+                    2
+                  </button>
+                  <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
+                    3
+                  </button>
+                  <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </main>
 
       <Footer />
+
+      <CategorySidebar
+        subcategories={subcategories}
+        currentSlug={slug}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
     </div>
   );
 }
