@@ -18,7 +18,7 @@ const fallbackProducts: Product[] = [
     reviewCount: 20855,
     features: ["30Hr Playtime", "Vibration Notifications"],
     category: "audio",
-    url: "https://ke.oraimo.com/product/oraimo-necklace-lite-call-vibration-30-hrs-playtime-app-wireless-headphones",
+
   },
   {
     id: 2,
@@ -31,7 +31,7 @@ const fallbackProducts: Product[] = [
     reviewCount: 12500,
     features: ["Spatial Audio", "Active Noise Cancellation"],
     category: "audio",
-    url: "https://ke.oraimo.com/product/oraimo-spacebuds-neo-true-wireless-spatial-earbuds-otw-323",
+
   },
 ];
 

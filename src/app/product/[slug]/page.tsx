@@ -155,16 +155,6 @@ export default async function ProductPage({ params }: PageProps) {
                 </button>
               </div>
 
-              <div className="mt-6 pt-6 border-t">
-                <a
-                  href={product.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-600 hover:underline text-sm"
-                >
-                  View on official site →
-                </a>
-              </div>
             </div>
           </div>
         </div>

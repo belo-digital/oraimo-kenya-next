@@ -13,7 +13,6 @@ export interface Product {
   tagColor?: string;
   features?: string[];
   category: string;
-  url: string;
 }
 
 export interface Category {
@@ -111,7 +110,6 @@ export function parseProducts(html: string, category: string): Product[] {
         tagColor,
         features: features.length > 0 ? features : undefined,
         category,
-        url: href.startsWith("http") ? href : `${BASE_URL}${href}`,
       });
     }
   });

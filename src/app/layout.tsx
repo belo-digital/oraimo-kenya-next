@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "oraimo Kenya Official Online Store",
     description: "Explore the latest earbuds, smartwatches, power banks, smart home and other smart devices at oraimo online store.",
-    url: "https://ke.oraimo.com",
+    url: "https://oraimo-kenya-next.vercel.app",
     siteName: "oraimo",
     images: [
       {
