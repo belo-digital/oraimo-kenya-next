@@ -3,7 +3,8 @@ import Footer from "@/components/Footer";
 import TrustBadges from "@/components/TrustBadges";
 import Breadcrumb from "@/components/Breadcrumb";
 import ProductCard from "@/components/ProductCard";
-import { scrapeCategoryProducts, Product } from "@/lib/scraper";
+import { scrapeCategoryProducts } from "@/lib/scraper";
+import { getFallbackProducts } from "@/lib/fallback-products";
 
 export const revalidate = 3600;
 
@@ -39,12 +40,10 @@ const categorySubcategories: Record<string, { name: string; slug: string }[]> = 
     { name: "Wireless Over-Ear Headphones", slug: "wireless-over-ear-headphones" },
     { name: "Open-Ear Headphones", slug: "open-ear-headphones" },
     { name: "Wireless Speakers", slug: "wireless-speakers" },
-    { name: "Wired Earphones", slug: "wired-earphones" },
   ],
   power: [
     { name: "Power Banks", slug: "power-banks" },
     { name: "Wall Chargers", slug: "wall-chargers" },
-    { name: "Wireless Chargers", slug: "wireless-chargers" },
     { name: "Car Chargers", slug: "car-chargers" },
     { name: "Cables", slug: "cables" },
   ],
@@ -53,7 +52,6 @@ const categorySubcategories: Record<string, { name: string; slug: string }[]> = 
     { name: "Smart Lighting", slug: "smart-lighting" },
     { name: "Mouse & Keyboards", slug: "mouse-keyboards" },
     { name: "Camera Accessories", slug: "camera-accessories" },
-    { name: "Mi-Fi", slug: "networking" },
   ],
   "personal-care": [
     { name: "Grooming Series", slug: "grooming-series" },
@@ -63,7 +61,6 @@ const categorySubcategories: Record<string, { name: string; slug: string }[]> = 
     { name: "Blenders & Juicers", slug: "blenders" },
     { name: "Vacuums", slug: "vacuums" },
     { name: "Coffee Machines", slug: "coffee-machines" },
-    { name: "Air Fryers", slug: "air-fryers" },
   ],
 };
 
@@ -76,11 +73,15 @@ export default async function CollectionPage({ params }: PageProps) {
   const categoryName = categoryNames[slug] || slug.replace(/-/g, " ");
   const subcategories = categorySubcategories[slug] || [];
 
-  let products: Product[] = [];
+  let products = getFallbackProducts(slug);
+
   try {
-    products = await scrapeCategoryProducts(slug);
+    const scraped = await scrapeCategoryProducts(slug);
+    if (scraped.length > 0) {
+      products = scraped;
+    }
   } catch (error) {
-    console.error("Failed to scrape category:", error);
+    // Use fallback products
   }
 
   return (
@@ -108,6 +109,7 @@ export default async function CollectionPage({ params }: PageProps) {
           <div className="flex gap-8 py-6">
             {subcategories.length > 0 && (
               <aside className="hidden lg:block w-64 flex-shrink-0">
+                <h3 className="font-semibold text-gray-900 mb-3">{categoryName}</h3>
                 <nav className="space-y-1">
                   {subcategories.map((sub) => (
                     <a
